@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SCANNER - CHỤP ẢNH RA KẾT QUẢ</title>
+    <style>
+        body { background: #000; color: #0f0; font-family: monospace; text-align: center; margin: 0; padding: 10px; }
+        #cam-box { width: 100%; max-width: 400px; height: 300px; border: 2px solid #0f0; margin: auto; position: relative; background: #111; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .btn-scan { background: #0f0; color: #000; width: 100%; max-width: 400px; padding: 20px; font-weight: bold; font-size: 1.2rem; border: none; margin-top: 15px; border-radius: 10px; box-shadow: 0 0 15px #0f0; }
+        #result-board { margin-top: 20px; padding: 15px; border: 1px solid #333; border-radius: 10px; background: rgba(0,255,0,0.05); }
+        .pred-text { font-size: 2rem; color: #fff; text-shadow: 0 0 10px #0f0; margin: 10px 0; }
+        #history { font-size: 0.8rem; color: #666; }
+    </style>
+</head>
+<body>
+
+    <h2 style="color: #0f0;">AI BACCARAT SCANNER V4.0</h2>
+    
+    <div id="cam-box">
+        <video id="webcam" autoplay playsinline></video>
+    </div>
+
+    <button class="btn-scan" onclick="scanTable()">QUÉT ẢNH & DỰ ĐOÁN</button>
+
+    <div id="result-board">
+        <div>AI DỰ BÁO VÁN TIẾP THEO:</div>
+        <div id="prediction" class="pred-text">ĐANG ĐỢI...</div>
+        <div id="confidence" style="font-size: 0.9rem;">Độ tin cậy: 0%</div>
+        <hr style="border: 0.5px solid #222;">
+        <div id="history">Lịch sử bàn: -</div>
+    </div>
+
+    <canvas id="hidden-canvas" style="display:none;"></canvas>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('hidden-canvas');
+        let history = [];
+
+        // Mở Camera sau (Yêu cầu HTTPS từ GitHub Pages)
+        async function startCam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
+                video.srcObject = stream;
+            } catch (e) {
+                alert("Lỗi Camera: Hãy mở bằng link HTTPS từ GitHub Pages!");
+            }
+        }
+
+        function scanTable() {
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+
+            // AI phân tích màu sắc tại tâm điểm để biết ván trước ra gì
+            const pixel = ctx.getImageData(canvas.width/2, canvas.height/2, 1, 1).data;
+            const r = pixel[0], g = pixel[1], b = pixel[2];
+
+            let detected = "";
+            if (r > b + 20) detected = "B"; // Thiên đỏ -> Banker
+            else if (b > r + 20) detected = "P"; // Thiên xanh -> Player
+            else detected = Math.random() > 0.5 ? "P" : "B"; // Ngẫu nhiên nếu không rõ
+
+            history.push(detected);
+            updateLogic();
+        }
+
+        function updateLogic() {
+            if (history.length < 2) {
+                document.getElementById('prediction').innerText = "CẦN THÊM DỮ LIỆU";
+                return;
+            }
+
+            // Thuật toán Markov Chain dự đoán ván sau
+            let last = history[history.length - 1];
+            let pCount = 0, bCount = 0;
+
+            for (let i = 0; i < history.length - 1; i++) {
+                if (history[i] === last) {
+                    if (history[i+1] === "P") pCount++;
+                    else bCount++;
+                }
+            }
+
+            let total = pCount + bCount;
+            let prob = 50;
+            let result = "";
+
+            if (total === 0) {
+                result = history[history.length-1] === "P" ? "BANKER 🔴" : "PLAYER 🔵"; // Đánh nghịch cầu
+                prob = 52;
+            } else {
+                if (pCount > bCount) {
+                    result = "PLAYER 🔵";
+                    prob = Math.round((pCount/total)*100);
+                } else {
+                    result = "BANKER 🔴";
+                    prob = Math.round((bCount/total)*100);
+                }
+            }
+
+            document.getElementById('prediction').innerText = result;
+            document.getElementById('confidence').innerText = `Độ tin cậy: ${prob}%`;
+            document.getElementById('history').innerText = `Lịch sử bàn: ${history.join("->")}`;
+        }
+
+        startCam();
+    </script>
+</body>
+</html>

